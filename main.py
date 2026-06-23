@@ -63,7 +63,9 @@ def main():
     st.write(now_jakarta.strftime("%A, %d %B %Y %H:%M:%S %Z"))
     st.write("### Which transportation option would you use today?")
 
-    transport_option_display = st.radio(
+    col_1, col_2 = st.columns([1, 1])
+
+    transport_option_display = col_1.radio(
         "**Choose a transportation option:**",
         ["**🛵 Ojol + 🚝 LRT**", 
          "**🚙 Mikrotrans + 🚝 LRT**", 
@@ -75,7 +77,7 @@ def main():
     write_sheet_name = st.secrets.get("sheet_name", "Sheet1")
     read_sheet_name = st.secrets.get("read_sheet_name", "Latest Transport")
 
-    if st.button("Submit"):
+    if col_1.button("Submit"):
         submitted_time = datetime.now(tz=jakarta_tz).strftime("%Y-%m-%d %H:%M:%S")
         if sheet_id:
             success = append_submission(sheet_id, write_sheet_name, [submitted_time, transport_option])
@@ -91,20 +93,34 @@ def main():
         if records is not None:
 
             # Count Ojol + LRT usage in the read sheet and show quota info
+            quota_max = 15
             ojol_label = "🛵 Ojol + 🚝 LRT"
             ojol_count = sum(
                 1 for r in records if any(str(v).strip() == ojol_label for v in r.values())
             )
-            remaining = max(0, 15 - ojol_count)
-            if ojol_count >= 15:
+            remaining = max(0, quota_max - ojol_count)
+            if ojol_count >= quota_max:
                 st.warning(
-                    f"You already used up all of your Ojol quota, please choose other transportation options for the rest of the month"
+                    f"Ojol quota is **fully used** for this month. Let's choose other transportation options.",
+                    icon="🚨"
                 )
             elif ojol_count >= 10:
                 st.info(
-                    f"You already used up {ojol_count} days of Ojol quota, you only have {remaining} days left"
+                    f"You already used up {ojol_count} days of Ojol quota, you only have {remaining} day(s) left!",
+                    icon="⚠️"
                 )
-            st.write("### Daily Transportation")
+            # Visualize Ojol usage with a metric (quota is 15 days)
+            
+            delta_color = "red" if remaining <= 0 else "blue" if remaining <= 5 else "off"
+            col_2.metric(
+                "**Ojol usage**",
+                f"{ojol_count}/{quota_max}",
+                delta=f"{remaining} day(s) left",
+                delta_arrow="off",
+                delta_color=delta_color,
+            )
+
+            st.write("### Daily Transport Log")
             st.table(records)
     else:
         st.error(
