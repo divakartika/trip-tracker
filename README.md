@@ -1,41 +1,57 @@
-# trip-tracker
-Simple tracker to track daily transportation option
+# Trip Tracker
 
-## Google Sheets persistence
-This app writes each submission to a Google Sheet so the data is stored persistently when deployed to Streamlit Cloud.
+Welcome to **Trip Tracker**, a simple and fun app for logging your travel adventures and keeping your trip details organized in one place. It is made for beginners who want to learn how a small Python app can turn travel ideas into tracked memories.
 
-### Setup
-1. Create a Google Cloud project.
-2. Enable the Google Sheets API.
-3. Create a service account and download the JSON key.
-4. Share your Google Sheet with the service account email.
-5. Copy the spreadsheet ID from the sheet URL:
-   `https://docs.google.com/spreadsheets/d/<sheet_id>/edit`
+## 🚀 Purpose of the App
+This app helps you keep track of trips, destinations, dates, and notes in a friendly, easy-to-use interface. It is designed to show how a web app can connect your inputs to a backend storage system, all without needing complicated code.
 
-### Streamlit Cloud secrets
-Add the following secrets in Streamlit Cloud:
+## 📝 Background Story
+I built Trip Tracker while doing a monthly budget plan. I realized that to keep my transport spending below budget, I had to limit my commute options to something like:
+- 15x Ojol + LRT
+- 4x Mikrotrans + LRT
+- 3x Transjakarta bus
 
-```toml
-sheet_id = "<your-sheet-id>"
+So I made this app to remind myself every day and log my commuting choices. Anyone can remake it and adjust it for their own needs, whether that means tracking trips, budgets, or daily routes.
 
-[gcp_service_account]
-type = "service_account"
-project_id = "..."
-private_key_id = "..."
-private_key = "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-client_email = "..."
-client_id = "..."
-auth_uri = "https://accounts.google.com/o/oauth2/auth"
-token_uri = "https://oauth2.googleapis.com/token"
-auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
-client_x509_cert_url = "https://www.googleapis.com/robot/v1/metadata/x509/..."
-```
+## 🧠 How the App Works
+- The app runs in your browser using **Streamlit**, so it feels like a mini website.
+- You type in your trip info through the app's form fields.
+- The app sends that information to a spreadsheet or storage backend using **gspread** and **google-auth**.
+- Your trip is saved instantly, and you can keep adding new entries anytime.
 
-In the app, `sheet_id` and `gcp_service_account` must be available in `st.secrets`.
+> Think of it as a travel diary that lives on the web, powered by Python and a little spreadsheet magic.
 
-### Local development
-For local development, you can also create a `.streamlit/secrets.toml` file with the same values, but keep credentials private and never commit them to version control.
+## 📦 Requirements / Dependencies
+To run Trip Tracker, you need:
+- Python 3.12 or newer
+- `streamlit`
+- `gspread`
+- `google-auth`
 
-### Notes
-- The app appends rows to the first worksheet (`sheet1`).
-- Submissions shown in the app are session-local, but the Google Sheet stores data persistently.
+These packages are already listed in `pyproject.toml`, so the app is ready to install with standard Python tools.
+
+## 🛠️ How to Remake the App
+If you want to build this app again from scratch, follow these steps:
+
+1. Clone this repo or create a new folder.
+2. Create a Python virtual environment:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
+   ```
+3. Install the dependencies:
+   ```bash
+   pip install streamlit gspread google-auth
+   ```
+4. Get Google Sheets credentials if you want to save data to a sheet. See [Google Sheets setup instructions](GOOGLE_SHEETS_SETUP.md).
+   - If you deploy on Streamlit Cloud, put your service account data or API keys in `.streamlit/secrets.toml` instead of hardcoding them.
+5. Create a simple `main.py` that uses Streamlit for the UI and gspread for saving trip data.
+6. Run the app:
+   ```bash
+   streamlit run main.py
+   ```
+
+## 🎉 Final Notes
+This app is great for beginners because it combines a friendly interface with real Python packages. Once you understand the basics, you can expand it with new features like maps, photos, or shared trip lists.
+
+Happy coding and happy travels! ✈️

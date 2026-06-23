@@ -61,11 +61,9 @@ def main():
     now_jakarta = datetime.now(tz=jakarta_tz)
 
     st.write(now_jakarta.strftime("%A, %d %B %Y %H:%M:%S %Z"))
-    st.write("### Which transportation option would you use today?")
+    st.write("### How would you commute today?")
 
-    col_1, col_2 = st.columns([1, 1])
-
-    transport_option_display = col_1.radio(
+    transport_option_display = st.radio(
         "**Choose a transportation option:**",
         ["**🛵 Ojol + 🚝 LRT**", 
          "**🚙 Mikrotrans + 🚝 LRT**", 
@@ -77,7 +75,7 @@ def main():
     write_sheet_name = st.secrets.get("sheet_name", "Sheet1")
     read_sheet_name = st.secrets.get("read_sheet_name", "Latest Transport")
 
-    if col_1.button("Submit"):
+    if st.button("Submit"):
         submitted_time = datetime.now(tz=jakarta_tz).strftime("%Y-%m-%d %H:%M:%S")
         if sheet_id:
             success = append_submission(sheet_id, write_sheet_name, [submitted_time, transport_option])
@@ -92,32 +90,65 @@ def main():
         records = read_sheet_records(sheet_id, read_sheet_name)
         if records is not None:
 
-            # Count Ojol + LRT usage in the read sheet and show quota info
-            quota_max = 15
+            # Count Ojol usage
+            ojol_quota = 15
             ojol_label = "🛵 Ojol + 🚝 LRT"
             ojol_count = sum(
                 1 for r in records if any(str(v).strip() == ojol_label for v in r.values())
             )
-            remaining = max(0, quota_max - ojol_count)
-            if ojol_count >= quota_max:
+            ojol_remaining = max(0, ojol_quota - ojol_count)
+
+            # Count LRT usage
+            lrt_quota = 19
+            lrt_label = "🚙 Mikrotrans + 🚝 LRT"
+            lrt_count = ojol_count + sum(
+                1 for r in records if any(str(v).strip() == lrt_label for v in r.values())
+            )
+            lrt_remaining = max(0, lrt_quota - lrt_count)
+
+            # Ojol info box & warning box
+            if ojol_count >= ojol_quota:
                 st.warning(
-                    f"Ojol quota is **fully used** for this month. Let's choose other transportation options.",
+                    f"Ojol quota is **fully used** for this month. Let's choose other transportation options!",
                     icon="🚨"
                 )
             elif ojol_count >= 10:
                 st.info(
-                    f"You already used up {ojol_count} days of Ojol quota, you only have {remaining} day(s) left!",
+                    f"You already used up {ojol_count} days of Ojol quota, you only have {ojol_remaining} day(s) left!",
                     icon="⚠️"
                 )
-            # Visualize Ojol usage with a metric (quota is 15 days)
             
-            delta_color = "red" if remaining <= 0 else "blue" if remaining <= 5 else "off"
-            col_2.metric(
+            # LRT info box & warning box
+            if lrt_count >= lrt_quota:
+                st.warning(
+                    f"LRT quota is **fully used** for this month. Let's hop on a Transjakarta Bus!",
+                    icon="🚨"
+                )
+            elif lrt_count >= 17:
+                st.info(
+                    f"You already used up {lrt_count} days of LRT quota, you only have {lrt_remaining} day(s) left!",
+                    icon="⚠️"
+                )
+            
+            col_11, col_12 = st.columns(2, border=True)
+            # Ojol metric card
+            ojol_color = "red" if ojol_remaining <= 0 else "blue" if ojol_remaining <= 5 else "off"
+            col_11.metric(
                 "**Ojol usage**",
-                f"{ojol_count}/{quota_max}",
-                delta=f"{remaining} day(s) left",
+                f"{ojol_count}/{ojol_quota}",
+                delta=f"{ojol_remaining} day(s) left",
                 delta_arrow="off",
-                delta_color=delta_color,
+                delta_color=ojol_color,
+            )
+
+            # LRT metric card
+            lrt_color = "red" if lrt_remaining <= 0 else "blue" if lrt_remaining <= 2 else "off"
+            col_12.metric(
+                "**LRT usage**",
+                f"{lrt_count}/{lrt_quota}",
+                delta=f"{lrt_remaining} day(s) left",
+                delta_arrow="off",
+                delta_color=lrt_color,
             )
 
             st.write("### Daily Transport Log")
