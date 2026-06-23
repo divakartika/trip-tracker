@@ -55,6 +55,11 @@ def read_sheet_records(sheet_id: str, sheet_name: str) -> list[dict[str, str]] |
 
 
 def main():
+    st.set_page_config(
+        page_title="Trip Tracker",
+        page_icon="🚍",
+    )
+
     st.title("Trip Tracker")
 
     jakarta_tz = ZoneInfo("Asia/Jakarta")
@@ -63,19 +68,23 @@ def main():
     st.write(now_jakarta.strftime("%A, %d %B %Y %H:%M:%S %Z"))
     st.write("### How would you commute today?")
 
-    transport_option_display = st.radio(
-        "**Choose a transportation option:**",
-        ["**🛵 Ojol + 🚝 LRT**", 
-         "**🚙 Mikrotrans + 🚝 LRT**", 
-         "**🚍 Transjakarta Bus**"],
-    )
-    transport_option = transport_option_display.replace("*", "")
-
     sheet_id = st.secrets.get("sheet_id")
     write_sheet_name = st.secrets.get("sheet_name", "Sheet1")
     read_sheet_name = st.secrets.get("read_sheet_name", "Latest Transport")
 
-    if st.button("Submit"):
+    with st.form("transport_form"):
+        transport_option_display = st.radio(
+            "**Choose a transportation option:**",
+            ["**🛵 Ojol + 🚝 LRT**", 
+             "**🚙 Mikrotrans + 🚝 LRT**", 
+             "**🚍 Transjakarta Bus**"],
+            index=None,
+        )
+        transport_option = transport_option_display.replace("*", "") if transport_option_display else None
+        
+        submit_button = st.form_submit_button("Submit", disabled = True if transport_option is None else False)
+
+    if submit_button:
         submitted_time = datetime.now(tz=jakarta_tz).strftime("%Y-%m-%d %H:%M:%S")
         if sheet_id:
             success = append_submission(sheet_id, write_sheet_name, [submitted_time, transport_option])
@@ -109,24 +118,24 @@ def main():
             # Ojol info box & warning box
             if ojol_count >= ojol_quota:
                 st.warning(
-                    f"Ojol quota is **fully used** for this month. Let's choose other transportation options!",
+                    f"**Ojol** quota is **fully used** for this month. Let's choose other transportation options!",
                     icon="🚨"
                 )
             elif ojol_count >= 10:
                 st.info(
-                    f"You already used up {ojol_count} days of Ojol quota, you only have {ojol_remaining} day(s) left!",
+                    f"You already used up {ojol_count} days of **Ojol** quota, you only have {ojol_remaining} day(s) left!",
                     icon="⚠️"
                 )
             
             # LRT info box & warning box
             if lrt_count >= lrt_quota:
                 st.warning(
-                    f"LRT quota is **fully used** for this month. Let's hop on a Transjakarta Bus!",
+                    f"**LRT** quota is **fully used** for this month. Let's hop on a Transjakarta Bus!",
                     icon="🚨"
                 )
             elif lrt_count >= 17:
                 st.info(
-                    f"You already used up {lrt_count} days of LRT quota, you only have {lrt_remaining} day(s) left!",
+                    f"You already used up {lrt_count} days of **LRT** quota, you only have {lrt_remaining} day(s) left!",
                     icon="⚠️"
                 )
             
