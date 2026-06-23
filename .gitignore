@@ -1,5 +1,5 @@
 .venv
 .streamlit/
 .python-version
-*.lock
+poetry.lock
 trip-tracker.json
