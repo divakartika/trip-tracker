@@ -72,17 +72,23 @@ def main():
     write_sheet_name = st.secrets.get("sheet_name", "Sheet1")
     read_sheet_name = st.secrets.get("read_sheet_name", "Latest Transport")
 
-    with st.form("transport_form"):
-        transport_option_display = st.radio(
-            "**Choose a transportation option:**",
-            ["**🛵 Ojol + 🚝 LRT**", 
-             "**🚙 Mikrotrans + 🚝 LRT**", 
-             "**🚍 Transjakarta Bus**"],
-            index=None,
-        )
-        transport_option = transport_option_display.replace("*", "") if transport_option_display else None
-        
-        submit_button = st.form_submit_button("Submit", disabled = True if transport_option is None else False)
+    transport_option_display = st.radio(
+        "**Choose a transportation option:**",
+        ["**🛵 Ojol + 🚝 LRT**",
+         "**🚙 Mikrotrans + 🚝 LRT**",
+         "**🚍 Transjakarta Bus**",
+         ],
+        index=None,
+    )
+    transport_option = (
+        transport_option_display.replace("*", "")
+        if transport_option_display else None
+    )
+
+    submit_button = st.button(
+        "Submit",
+        disabled=transport_option is None,
+    )
 
     if submit_button:
         submitted_time = datetime.now(tz=jakarta_tz).strftime("%Y-%m-%d %H:%M:%S")
